@@ -1,0 +1,15 @@
+{
+  "toolchain": "STM32CubeIDE",
+  "variant": "Validation",
+  "fromMx": false,
+  "name": "NUCLEO-F401RE",
+  "createdAt": 1771965754877,
+  "lastModified": 1771966084083,
+  "lastAccessed": 1771965754881,
+  "board": "NUCLEO-F401RE",
+  "uartInstance": {
+    "usart": "USART2",
+    "txpin": "PA2",
+    "rxpin": "PA3"
+  }
+}
