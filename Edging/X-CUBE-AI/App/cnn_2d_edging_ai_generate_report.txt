@@ -1,30 +1,30 @@
 ST Edge AI Core v2.2.0-20266 2adc00962
-Created date          : 2026-03-15 17:26:53
-Parameters            : generate --target stm32f4 --name cnn_2d_edging_ai -m D:/Dev/STM Zoo/stm32ai-modelzoo/hand_posture/st_cnn2d_handposture/ST_pretrainedmodel_custom_dataset/ST_VL53L8CX_handposture_dataset/st_cnn2d_handposture_8classes/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/E14/AppData/Local/Temp/mxAI_workspace109748062568006138594810350573921 --output C:/Users/E14/.stm32cubemx/cnn_2d_edging_ai_output
+Created date          : 2026-03-18 16:01:29
+Parameters            : generate --target stm32f4 --name cnn_2d_edging_ai -m C:/Users/mateu/STM32CubeIDE/workspace_1.18.0/SignAI2026/Edging/model/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/mateu/AppData/Local/Temp/mxAI_workspace1649727536060012089034448007998212 --output C:/Users/mateu/.stm32cubemx/cnn_2d_edging_ai_output
 
 Exec/report summary (generate)
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-model file         :   D:\Dev\STM Zoo\stm32ai-modelzoo\hand_posture\st_cnn2d_handposture\ST_pretrainedmodel_custom_dataset\ST_VL53L8CX_handposture_dataset\st_cnn2d_handposture_8classes\st_cnn2d_handposture_8classes.keras   
-type               :   keras                                                                                                                                                                                                   
-c_name             :   cnn_2d_edging_ai                                                                                                                                                                                        
-compression        :   none                                                                                                                                                                                                    
-options            :   allocate-inputs, allocate-outputs                                                                                                                                                                       
-optimization       :   balanced                                                                                                                                                                                                
-target/series      :   stm32f4                                                                                                                                                                                                 
-workspace dir      :   C:\Users\E14\AppData\Local\Temp\mxAI_workspace109748062568006138594810350573921                                                                                                                         
-output dir         :   C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output                                                                                                                                                       
-model_fmt          :   float                                                                                                                                                                                                   
-model_name         :   st_cnn2d_handposture_8classes                                                                                                                                                                           
-model_hash         :   0x42ef97df0047333c87bc4770f595dcb7                                                                                                                                                                      
-params #           :   2,752 items (10.75 KiB)                                                                                                                                                                                 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-input 1/1          :   'input_layer', f32(1x8x8x2), 512 Bytes, activations                                                                                                                                                     
-output 1/1         :   'dense_1', f32(1x8), 32 Bytes, activations                                                                                                                                                              
-macc               :   8,520                                                                                                                                                                                                   
-weights (ro)       :   11,008 B (10.75 KiB) (1 segment)                                                                                                                                                                        
-activations (rw)   :   1,096 B (1.07 KiB) (1 segment) *                                                                                                                                                                        
-ram (total)        :   1,096 B (1.07 KiB) = 1,096 + 0 + 0                                                                                                                                                                      
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+model file         :   C:\Users\mateu\STM32CubeIDE\workspace_1.18.0\SignAI2026\Edging\model\st_cnn2d_handposture_8classes.keras   
+type               :   keras                                                                                                      
+c_name             :   cnn_2d_edging_ai                                                                                           
+compression        :   none                                                                                                       
+options            :   allocate-inputs, allocate-outputs                                                                          
+optimization       :   balanced                                                                                                   
+target/series      :   stm32f4                                                                                                    
+workspace dir      :   C:\Users\mateu\AppData\Local\Temp\mxAI_workspace1649727536060012089034448007998212                         
+output dir         :   C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output                                                        
+model_fmt          :   float                                                                                                      
+model_name         :   st_cnn2d_handposture_8classes                                                                              
+model_hash         :   0x42ef97df0047333c87bc4770f595dcb7                                                                         
+params #           :   2,752 items (10.75 KiB)                                                                                    
+----------------------------------------------------------------------------------------------------------------------------------
+input 1/1          :   'input_layer', f32(1x8x8x2), 512 Bytes, activations                                                        
+output 1/1         :   'dense_1', f32(1x8), 32 Bytes, activations                                                                 
+macc               :   8,520                                                                                                      
+weights (ro)       :   11,008 B (10.75 KiB) (1 segment)                                                                           
+activations (rw)   :   1,096 B (1.07 KiB) (1 segment) *                                                                           
+ram (total)        :   1,096 B (1.07 KiB) = 1,096 + 0 + 0                                                                         
+----------------------------------------------------------------------------------------------------------------------------------
 (*) 'input'/'output' buffers are allocated in the activations buffer
 
 Model name - st_cnn2d_handposture_8classes
@@ -174,11 +174,11 @@ macc=8,520 weights=11,008 act=1,096 ram_io=0
 
 
 Generated files (7)
----------------------------------------------------------------------------------- 
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data_params.h   
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data_params.c   
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data.h          
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data.c          
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_config.h        
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai.h               
-C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai.c               
+------------------------------------------------------------------------------------ 
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data_params.h   
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data_params.c   
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data.h          
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_data.c          
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai_config.h        
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai.h               
+C:\Users\mateu\.stm32cubemx\cnn_2d_edging_ai_output\cnn_2d_edging_ai.c               
