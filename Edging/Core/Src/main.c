@@ -22,7 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "53l8a1_ranging_sensor.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +45,9 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+RANGING_SENSOR_Capabilities_t Cap;
+RANGING_SENSOR_ProfileConfig_t Profile;
+__IO uint32_t ToF_EventFlag = SET;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,7 +55,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void ToF_Init(void);
+void ToF_ProfileConfig(void);
+void ToF_Start(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,7 +97,10 @@ int main(void)
   MX_USART2_UART_Init();
   MX_X_CUBE_AI_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("\r\nSpatialKey starting...\r\n");
+  ToF_Init();
+  ToF_ProfileConfig();
+  ToF_Start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -226,6 +234,59 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int _write(int file, char *ptr, int len)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t*)ptr, len, 100);
+    return len;
+}
+
+void ToF_Init(void)
+{
+    printf("ToF init...\r\n");
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+    HAL_Delay(2);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+    HAL_Delay(2);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+    HAL_Delay(2);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+    HAL_Delay(2);
+
+    if (VL53L8A1_RANGING_SENSOR_Init(VL53L8A1_DEV_CENTER) != BSP_ERROR_NONE)
+    {
+        printf("ToF ERROR\r\n");
+        Error_Handler();
+    }
+    printf("ToF OK\r\n");
+}
+
+void ToF_ProfileConfig(void)
+{
+    Profile.RangingProfile = RS_PROFILE_8x8_CONTINUOUS;
+    Profile.TimingBudget = 30;
+    Profile.Frequency = 3;
+    Profile.EnableSignal = 1;
+    Profile.EnableAmbient = 0;
+    VL53L8A1_RANGING_SENSOR_ConfigProfile(VL53L8A1_DEV_CENTER, &Profile);
+}
+
+void ToF_Start(void)
+{
+    if (VL53L8A1_RANGING_SENSOR_Start(VL53L8A1_DEV_CENTER,
+        RS_MODE_BLOCKING_CONTINUOUS) != BSP_ERROR_NONE)
+    {
+        printf("ToF start ERROR\r\n");
+        Error_Handler();
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == GPIO_PIN_4)
+    {
+        ToF_EventFlag = SET;
+    }
+}
 
 /* USER CODE END 4 */
 

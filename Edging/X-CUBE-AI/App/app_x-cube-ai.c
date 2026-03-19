@@ -58,6 +58,8 @@
 #include "cnn_2d_edging_ai_data.h"
 
 /* USER CODE BEGIN includes */
+#include "53l8a1_ranging_sensor.h"
+extern __IO uint32_t ToF_EventFlag;
 /* USER CODE END includes */
 
 /* IO buffers ----------------------------------------------------------------*/
@@ -171,26 +173,82 @@ static int ai_run(void)
 /* USER CODE BEGIN 2 */
 int acquire_and_process_data(ai_i8* data[])
 {
-  /* fill the inputs of the c-model
-  for (int idx=0; idx < AI_CNN_2D_EDGING_AI_IN_NUM; idx++ )
-  {
-      data[idx] = ....
-  }
+    /* Pobierz dane z czujnika ToF VL53L8CX
+     * Czujnik mierzy 64 strefy (siatka 8x8)
+     * Dla każdej strefy pobieramy:
+     *   - Distance[0] = odległość w mm (0-2000)
+     *   - Signal[0]   = siła sygnału
+     * Łącznie 128 liczb = wejście do modelu AI */
 
-  */
-  return 0;
+    RANGING_SENSOR_Result_t Result;
+    int32_t status = -1;
+
+    if (ToF_EventFlag)  /* Czy czujnik ma nowe dane? */
+    {
+        ToF_EventFlag = RESET;  /* Zaznacz że odczytaliśmy */
+        status = VL53L8A1_RANGING_SENSOR_GetDistance(
+                     VL53L8A1_DEV_CENTER, &Result);
+
+        if (status == BSP_ERROR_NONE)
+        {
+            float* input = (float*)data[0];  /* Bufor wejściowy modelu */
+            int j = 0;
+
+            for (int i = 0; i < 64; i++)  /* Dla każdej z 64 stref */
+            {
+                /* Odległość - ogranicz do 2000mm */
+                if (Result.ZoneResult[i].Distance[0] <= 2000)
+                    input[j++] = (float)Result.ZoneResult[i].Distance[0];
+                else
+                    input[j++] = 2000.0f;
+
+                /* Siła sygnału */
+                input[j++] = (float)Result.ZoneResult[i].Signal[0];
+            }
+            return 0;  /* Sukces - dane gotowe dla AI */
+        }
+    }
+    return -1;  /* Brak nowych danych - poczekaj na następny pomiar */
 }
 
 int post_process(ai_i8* data[])
 {
-  /* process the predictions
-  for (int idx=0; idx < AI_CNN_2D_EDGING_AI_OUT_NUM; idx++ )
-  {
-      data[idx] = ....
-  }
+    /* Przetwórz wynik modelu AI
+     * Model zwraca 8 liczb (pewność dla każdego gestu)
+     * Wybieramy gest z największą pewnością
+     * i wysyłamy jego nazwę przez UART */
 
-  */
-  return 0;
+    float* output = (float*)data[0];
+
+    /* Nazwy gestów - kolejność musi zgadzać się z modelem!
+     * Model: st_cnn2d_handposture_8classes z STM32 Model Zoo */
+    const char* gesty[] = {
+        "NONE",       /* 0 - brak gestu */
+        "FLAT_HAND",  /* 1 - płaska dłoń */
+        "LIKE",       /* 2 - kciuk w górę */
+        "DISLIKE",    /* 3 - kciuk w dół */
+        "FIST",       /* 4 - pięść */
+        "LOVE",       /* 5 - kocham cię */
+        "BREAKTIME",  /* 6 - przerwa */
+        "CROSSHANDS"  /* 7 - skrzyżowane dłonie */
+    };
+
+    /* Znajdź gest z największą pewnością */
+    int max_index = 0;
+    float max_value = output[0];
+
+    for (int i = 1; i < 8; i++)
+    {
+        if (output[i] > max_value)
+        {
+            max_value = output[i];
+            max_index = i;
+        }
+    }
+
+    /* Wyślij przez UART - skrypt Python to odbierze */
+    printf("GEST:%s\r\n", gesty[max_index]);
+    return 0;
 }
 /* USER CODE END 2 */
 
