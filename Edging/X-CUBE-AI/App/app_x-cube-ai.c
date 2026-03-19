@@ -169,16 +169,58 @@ static int ai_run(void)
 }
 
 /* USER CODE BEGIN 2 */
+/* USER CODE BEGIN 2 */
 int acquire_and_process_data(ai_i8* data[])
 {
-  /* fill the inputs of the c-model
-  for (int idx=0; idx < AI_CNN_2D_EDGING_AI_IN_NUM; idx++ )
+  // Rzutujemy uniwersalny bufor na wskaźnik float
+  float *ai_input_buffer = (float *)data[0];
+
+  // --- STAŁE Z PROJEKTU REFERENCYJNEGO ST ---
+  const float NORM_RANGING_CENTER = 295.0f;
+  const float NORM_RANGING_IQR    = 196.0f;
+  const float NORM_SIGNAL_CENTER  = 281.0f;
+  const float NORM_SIGNAL_IQR     = 452.0f;
+  const float DEFAULT_RANGING     = 4000.0f;
+  const float DEFAULT_SIGNAL      = 0.0f;
+
+  for (int i = 0; i < 64; i++)
   {
-      data[idx] = ....
+      float distance_f = 0.0f;
+      float signal_f = 0.0f;
+
+      // 1. WALIDACJA ODCZYTU Z CZUJNIKA
+      uint8_t targets = ToF_Data.ZoneResult[i].NumberOfTargets;
+      uint8_t status = ToF_Data.ZoneResult[i].Status[0];
+
+      // Akceptujemy tylko statusy 5 oraz 9
+      if ((targets > 0) && (status == 5 || status == 9))
+      {
+          // 2. DEKODOWANIE FORMATU FIXED-POINT
+          distance_f = (float)ToF_Data.ZoneResult[i].Distance[0] / 4.0f;     // Format 14.2
+          signal_f   = (float)ToF_Data.ZoneResult[i].Signal[0] / 2048.0f;    // Format 21.11
+      }
+      else
+      {
+          // Wypełnianie tła (Background removal)
+          distance_f = DEFAULT_RANGING;
+          signal_f   = DEFAULT_SIGNAL;
+      }
+
+      // 3. NORMALIZACJA (Standard Scaler / IQR)
+      float norm_distance = (distance_f - NORM_RANGING_CENTER) / NORM_RANGING_IQR;
+      float norm_signal   = (signal_f - NORM_SIGNAL_CENTER) / NORM_SIGNAL_IQR;
+
+      // 4. OBRÓT O 180 STOPNI (Kluczowy krok dla modelu CNN!)
+      // Zamieniamy indeks odczytu 'i' na odwrócony indeks zapisu 'rotated_idx'
+      int rotated_idx = 63 - i;
+
+      // 5. ZAPIS DO BUFORA WEJŚCIOWEGO AI
+      // Sieć przyjmuje 128 wejść (64 strefy * 2 cechy) ułożonych naprzemiennie
+      ai_input_buffer[2 * rotated_idx]     = norm_distance;
+      ai_input_buffer[2 * rotated_idx + 1] = norm_signal;
   }
 
-  */
-  return 0;
+  return 0; // Gotowe do inferencji
 }
 
 int post_process(ai_i8* data[])
@@ -199,7 +241,7 @@ int post_process(ai_i8* data[])
 void MX_X_CUBE_AI_Init(void)
 {
     /* USER CODE BEGIN 5 */
-  printf("\r\nTEMPLATE - initialization\r\n");
+  printf("\r\nAI INIT\r\n");
 
   ai_boostrap(data_activations0);
     /* USER CODE END 5 */
@@ -208,28 +250,27 @@ void MX_X_CUBE_AI_Init(void)
 void MX_X_CUBE_AI_Process(void)
 {
     /* USER CODE BEGIN 6 */
-  int res = -1;
-
-  printf("TEMPLATE - run - main loop\r\n");
-
-  if (cnn_2d_edging_ai) {
-
-    do {
-      /* 1 - acquire and pre-process input data */
-      res = acquire_and_process_data(data_ins);
-      /* 2 - process the data - call inference engine */
-      if (res == 0)
-        res = ai_run();
-      /* 3- post-process the predictions */
-      if (res == 0)
-        res = post_process(data_outs);
-    } while (res==0);
-  }
-
-  if (res) {
-    ai_error err = {AI_ERROR_INVALID_STATE, AI_ERROR_CODE_NETWORK};
-    ai_log_err(err, "Process has FAILED");
-  }
+//  int res = -1;
+//
+//  if (cnn_2d_edging_ai) {
+//
+//    do {
+//      /* 1 - acquire and pre-process input data */
+//      res = acquire_and_process_data(data_ins);
+//      /* 2 - process the data - call inference engine */
+//      if (res == 0)
+//        res = ai_run();
+//      /* 3- post-process the predictions */
+//      if (res == 0)
+//        res = post_process(data_outs);
+//    } while (res==0);
+//  }
+//
+//  if (res) {
+//    ai_error err = {AI_ERROR_INVALID_STATE, AI_ERROR_CODE_NETWORK};
+//    ai_log_err(err, "Process has FAILED");
+//  }
+	return;
     /* USER CODE END 6 */
 }
 #ifdef __cplusplus
