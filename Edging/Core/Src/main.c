@@ -45,7 +45,6 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-// na znak z terminala
 uint8_t rx_byte;
 volatile uint8_t rx_flag = 0; // flaga informująca o otrzymaniu znaku
 
@@ -111,12 +110,9 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET); // PWR_EN_C na LOW
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET); // LPn_C na LOW
   HAL_Delay(100);
-  // Przywrócenie zasilania
+
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET); // PWR_EN_C na HIGH
-  HAL_Delay(100);
-  // Wybudzenie mikrokontrolera czujnika TOF
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET); // LPn_C na HIGH
-  HAL_Delay(100);
 
   int32_t status = VL53L8A1_RANGING_SENSOR_Init(0);
 
