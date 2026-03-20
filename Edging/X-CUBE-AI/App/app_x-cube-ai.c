@@ -58,6 +58,13 @@
 #include "cnn_2d_edging_ai_data.h"
 
 /* USER CODE BEGIN includes */
+#include "53l8a1_ranging_sensor.h"
+#define FIXED_POINT_14_2_TO_FLOAT                 (4.0)
+#define FIXED_POINT_21_11_TO_FLOAT                (2048.0)
+#include <stdbool.h>
+//extern RANGING_SENSOR_Result_t ToF_Data;
+HANDPOSTURE_converted_data Ranging_converted_data;
+RANGING_SENSOR_ZoneResult_t Data_ToF;
 /* USER CODE END includes */
 
 /* IO buffers ----------------------------------------------------------------*/
@@ -170,57 +177,104 @@ static int ai_run(void)
 
 /* USER CODE BEGIN 2 */
 /* USER CODE BEGIN 2 */
-int acquire_and_process_data(ai_i8* data[])
+//int acquire_and_process_data(ai_i8* data[], RANGING_SENSOR_Result_t* ToF_Data)
+//{
+//	// PLAN NA PREPROCESSING
+//	// 1. Zapisanie znacznika czasu
+//	// 2. Walidacja odczytu z czujnika (czy nie ma bledu)
+//	// 3. Skopiowanie danych do nowej struktury
+//	// 4. Zamiana danych ze staloprzecinkowych na zmienno
+//	// 5. Sprawdzenie poprawności odczytu (np. czy odległość mieści się w rozsądnym zakresie)
+//	// 6. Pętla maskująca (Background removal)
+//	// TUTAJ POWINIEN BYC WYCZYSZCZONY ODCZYT
+//	// 7. Normalizacja danych (standaryzacja / IQR)
+//	// 8. Ulozenie do bufora wejsciowego AI
+//	// sprawdzic siec
+//	// KONIEC PREPROCESSINGU
+//
+//
+//
+//  // Rzutujemy uniwersalny bufor na wskaźnik float
+//  float *ai_input_buffer = (float *)data[0];
+//
+//  // --- STAŁE Z PROJEKTU REFERENCYJNEGO ST ---
+//  const float NORM_RANGING_CENTER = 295.0f;
+//  const float NORM_RANGING_IQR    = 196.0f;
+//  const float NORM_SIGNAL_CENTER  = 281.0f;
+//  const float NORM_SIGNAL_IQR     = 452.0f;
+//  const float DEFAULT_RANGING     = 4000.0f;
+//  const float DEFAULT_SIGNAL      = 0.0f;
+//
+//  for (int i = 0; i < 64; i++)
+//  {
+//      float distance_f = 0.0f;
+//      float signal_f = 0.0f;
+//
+//      // 1. WALIDACJA ODCZYTU Z CZUJNIKA
+//      uint8_t targets = ToF_Data.ZoneResult[i].NumberOfTargets;
+//      uint8_t status = ToF_Data.ZoneResult[i].Status[0];
+//
+//      // Akceptujemy tylko statusy 5 oraz 9
+//      if ((targets > 0) && (status == 5 || status == 9))
+//      {
+//          // 2. DEKODOWANIE FORMATU FIXED-POINT
+//          distance_f = (float)ToF_Data.ZoneResult[i].Distance[0] / 4.0f;     // Format 14.2
+//          signal_f   = (float)ToF_Data.ZoneResult[i].Signal[0] / 2048.0f;    // Format 21.11
+//      }
+//      else
+//      {
+//          // Wypełnianie tła (Background removal)
+//          distance_f = DEFAULT_RANGING;
+//          signal_f   = DEFAULT_SIGNAL;
+//      }
+//
+//      // 3. NORMALIZACJA (Standard Scaler / IQR)
+//      float norm_distance = (distance_f - NORM_RANGING_CENTER) / NORM_RANGING_IQR;
+//      float norm_signal   = (signal_f - NORM_SIGNAL_CENTER) / NORM_SIGNAL_IQR;
+//
+//      // 4. OBRÓT O 180 STOPNI (Kluczowy krok dla modelu CNN!)
+//      // Zamieniamy indeks odczytu 'i' na odwrócony indeks zapisu 'rotated_idx'
+//      // int rotated_idx = 63 - i;
+//
+//      // 5. ZAPIS DO BUFORA WEJŚCIOWEGO AI
+//      // Sieć przyjmuje 128 wejść (64 strefy * 2 cechy) ułożonych naprzemiennie
+//      ai_input_buffer[2 * rotated_idx]     = norm_distance;
+//      ai_input_buffer[2 * rotated_idx + 1] = norm_signal;
+//  }
+//
+//  return 0; // Gotowe do inferencji
+//}
+
+bool are_all_targets_ok(const uint32_t *status_array)
 {
-  // Rzutujemy uniwersalny bufor na wskaźnik float
-  float *ai_input_buffer = (float *)data[0];
+    for (int i = 0; i < RANGING_SENSOR_NB_TARGET_PER_ZONE; i++)
+    {
+        if (status_array[i] != 0) //upewnic sie nalezy czy tu na pewno wartosc do sprawdzenia to 0
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
-  // --- STAŁE Z PROJEKTU REFERENCYJNEGO ST ---
-  const float NORM_RANGING_CENTER = 295.0f;
-  const float NORM_RANGING_IQR    = 196.0f;
-  const float NORM_SIGNAL_CENTER  = 281.0f;
-  const float NORM_SIGNAL_IQR     = 452.0f;
-  const float DEFAULT_RANGING     = 4000.0f;
-  const float DEFAULT_SIGNAL      = 0.0f;
+void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_ZoneResult_t *Data_ToF) {
+    int status = AreAllTargetsOk(Data_ToF->Status);
 
-  for (int i = 0; i < 64; i++)
-  {
-      float distance_f = 0.0f;
-      float signal_f = 0.0f;
+    if (status == 1) {
+        for (int i = 0; i < 64; i++)
+        {
+            Ranging_converted_data->ranging[i] = (float)Data_ToF->Distance[i] / FIXED_POINT_14_2_TO_FLOAT;
+            Ranging_converted_data->peak[i] = (float)Data_ToF->Signal[i] / FIXED_POINT_21_11_TO_FLOAT;
+        }
 
-      // 1. WALIDACJA ODCZYTU Z CZUJNIKA
-      uint8_t targets = ToF_Data.ZoneResult[i].NumberOfTargets;
-      uint8_t status = ToF_Data.ZoneResult[i].Status[0];
-
-      // Akceptujemy tylko statusy 5 oraz 9
-      if ((targets > 0) && (status == 5 || status == 9))
-      {
-          // 2. DEKODOWANIE FORMATU FIXED-POINT
-          distance_f = (float)ToF_Data.ZoneResult[i].Distance[0] / 4.0f;     // Format 14.2
-          signal_f   = (float)ToF_Data.ZoneResult[i].Signal[0] / 2048.0f;    // Format 21.11
-      }
-      else
-      {
-          // Wypełnianie tła (Background removal)
-          distance_f = DEFAULT_RANGING;
-          signal_f   = DEFAULT_SIGNAL;
-      }
-
-      // 3. NORMALIZACJA (Standard Scaler / IQR)
-      float norm_distance = (distance_f - NORM_RANGING_CENTER) / NORM_RANGING_IQR;
-      float norm_signal   = (signal_f - NORM_SIGNAL_CENTER) / NORM_SIGNAL_IQR;
-
-      // 4. OBRÓT O 180 STOPNI (Kluczowy krok dla modelu CNN!)
-      // Zamieniamy indeks odczytu 'i' na odwrócony indeks zapisu 'rotated_idx'
-      int rotated_idx = 63 - i;
-
-      // 5. ZAPIS DO BUFORA WEJŚCIOWEGO AI
-      // Sieć przyjmuje 128 wejść (64 strefy * 2 cechy) ułożonych naprzemiennie
-      ai_input_buffer[2 * rotated_idx]     = norm_distance;
-      ai_input_buffer[2 * rotated_idx + 1] = norm_signal;
-  }
-
-  return 0; // Gotowe do inferencji
+    }
+    else {
+        for (int i = 0; i < 64; i++)
+        {
+            Ranging_converted_data->ranging[i] = 0; // tu uzupelnic te domyslne wartosci
+            Ranging_converted_data->peak[i] = 0; // tu tez
+        }
+    }
 }
 
 int post_process(ai_i8* data[])

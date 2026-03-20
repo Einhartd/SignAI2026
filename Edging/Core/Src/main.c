@@ -344,7 +344,7 @@ int _write(int file, char *ptr, int len)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == USART2) {
-		rx_flag = 1; // ustaw flagę informującą o otrzymaniu znaku
+		rx_flag = 1;
 		// ponownie uruchomienie przerwania dla kolejnego znaku
 		HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
 	}
@@ -353,7 +353,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == INT_C_Pin) {
-		ToF_EventFlag = 1; // ustaw flagę informującą o gotowości nowej klatki danych z czujnika TOF
+		ToF_EventFlag = 1;
 	}
 }
 
