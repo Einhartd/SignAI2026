@@ -245,34 +245,21 @@ static int ai_run(void)
 //  return 0; // Gotowe do inferencji
 //}
 
-bool are_all_targets_ok(const uint32_t *status_array)
+void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_ZoneResult_t *Data_ToF)
 {
-    for (int i = 0; i < RANGING_SENSOR_NB_TARGET_PER_ZONE; i++)
+    for (int i = 0; i < 64; i++)
     {
-        if (status_array[i] != 0) //upewnic sie nalezy czy tu na pewno wartosc do sprawdzenia to 0
-        {
-            return false;
-        }
-    }
-    return true;
-}
+        uint32_t current_status = Data_ToF->Status[i];
 
-void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_ZoneResult_t *Data_ToF) {
-    int status = AreAllTargetsOk(Data_ToF->Status);
-
-    if (status == 1) {
-        for (int i = 0; i < 64; i++)
+        if (current_status == 5 || current_status == 9)
         {
             Ranging_converted_data->ranging[i] = (float)Data_ToF->Distance[i] / FIXED_POINT_14_2_TO_FLOAT;
             Ranging_converted_data->peak[i] = (float)Data_ToF->Signal[i] / FIXED_POINT_21_11_TO_FLOAT;
         }
-
-    }
-    else {
-        for (int i = 0; i < 64; i++)
+        else
         {
-            Ranging_converted_data->ranging[i] = 0; // tu uzupelnic te domyslne wartosci
-            Ranging_converted_data->peak[i] = 0; // tu tez
+            Ranging_converted_data->ranging[i] = 4000.0f;
+            Ranging_converted_data->peak[i] = 0.0f;
         }
     }
 }
