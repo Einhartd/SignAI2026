@@ -53,6 +53,10 @@ RANGING_SENSOR_ProfileConfig_t ToF_Profile; // struktura do konfiguracji profilu
 volatile uint8_t ToF_EventFlag = 0; // flaga informująca o gotowości nowej klatki danych z czujnika TOF
 HANDPOSTURE_converted_data Collected_data;
 float ai_data_input[128];
+const char* classes_table[8] = {
+   "None", "FlatHand", "Like", "Love", "Dislike", "BreakTime", "CrossHands", "Fist"
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -165,17 +169,13 @@ int main(void)
 		  validate_frame(&Collected_data);
 		  clean_frame(&Collected_data);
 		  normalize_data(&Collected_data, &ai_data_input[0]);
+		  MX_X_CUBE_AI_Process();
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
 			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
 
-//			  for (int row = 0; row < 8; row++){
-//				  for (int col = 0; col < 8; col++){
-//					  int idx = row * 8 + col;
-//					  long distance = ToF_Data.ZoneResult[idx].Distance[0];
-//					  float signal = ToF_Data.ZoneResult[idx].Signal[0];
-//					  printf("%4ld | %f ", distance, signal);
-//				  }
+//			  for (int i = 0; i < 128; i++){
+//				  printf("%f", (float*)ai_input[0].data);
 //				  printf("\r\n");
 //			  }
 

@@ -66,6 +66,7 @@
 //HANDPOSTURE_converted_data Ranging_converted_data;
 //RANGING_SENSOR_ZoneResult_t Data_ToF;
  uint32_t five_counter = 0;
+ extern float ai_data_input[128];
 /* USER CODE END includes */
 
 /* IO buffers ----------------------------------------------------------------*/
@@ -330,27 +331,17 @@ void MX_X_CUBE_AI_Init(void)
 void MX_X_CUBE_AI_Process(void)
 {
     /* USER CODE BEGIN 6 */
-//  int res = -1;
-//
-//  if (cnn_2d_edging_ai) {
-//
-//    do {
-//      /* 1 - acquire and pre-process input data */
-//      res = acquire_and_process_data(data_ins);
-//      /* 2 - process the data - call inference engine */
-//      if (res == 0)
-//        res = ai_run();
-//      /* 3- post-process the predictions */
-//      if (res == 0)
-//        res = post_process(data_outs);
-//    } while (res==0);
-//  }
-//
-//  if (res) {
-//    ai_error err = {AI_ERROR_INVALID_STATE, AI_ERROR_CODE_NETWORK};
-//    ai_log_err(err, "Process has FAILED");
-//  }
-	return;
+	ai_input->format = AI_BUFFER_FORMAT_FLOAT;
+	ai_input->data = (ai_handle)ai_data_input;
+	ai_input->size = 128;
+	ai_input->meta_info = NULL;
+	ai_input->flags = 0;
+
+//	for (int i = 0; i < 128; i++){
+//		printf("%f", ((float*)ai_input->data)[i]);
+//	}
+	ai_run();
+
     /* USER CODE END 6 */
 }
 #ifdef __cplusplus
