@@ -59,12 +59,13 @@
 
 /* USER CODE BEGIN includes */
 #include "53l8a1_ranging_sensor.h"
-#define FIXED_POINT_14_2_TO_FLOAT                 (4.0)
-#define FIXED_POINT_21_11_TO_FLOAT                (2048.0)
+//#define FIXED_POINT_14_2_TO_FLOAT                 (4.0)
+//#define FIXED_POINT_21_11_TO_FLOAT                (2048.0)
 #include <stdbool.h>
 //extern RANGING_SENSOR_Result_t ToF_Data;
-HANDPOSTURE_converted_data Ranging_converted_data;
-RANGING_SENSOR_ZoneResult_t Data_ToF;
+//HANDPOSTURE_converted_data Ranging_converted_data;
+//RANGING_SENSOR_ZoneResult_t Data_ToF;
+ uint32_t five_counter = 0;
 /* USER CODE END includes */
 
 /* IO buffers ----------------------------------------------------------------*/
@@ -245,24 +246,30 @@ static int ai_run(void)
 //  return 0; // Gotowe do inferencji
 //}
 
-void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_ZoneResult_t *Data_ToF)
+void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_Result_t *Data_ToF)
 {
-    for (int i = 0; i < 64; i++)
-    {
-        uint32_t current_status = Data_ToF->Status[i];
 
-        if (current_status == 5 || current_status == 9)
-        {
-            Ranging_converted_data->ranging[i] = (float)Data_ToF->Distance[i] / FIXED_POINT_14_2_TO_FLOAT;
-            Ranging_converted_data->peak[i] = (float)Data_ToF->Signal[i] / FIXED_POINT_21_11_TO_FLOAT;
-        }
-        else
-        {
-            Ranging_converted_data->ranging[i] = 4000.0f;
-            Ranging_converted_data->peak[i] = 0.0f;
-        }
+    for (int i = 0; i < 64; i++) //tutaj przenosimy odczytane dane do naszej struktury, na ktorej bedziemy pracowac w celu integralnosci danych
+    {
+   		Ranging_converted_data->ranging[i] = (float)Data_ToF->ZoneResult[i].Distance[0];
+        Ranging_converted_data->peak[i] = Data_ToF->ZoneResult[i].Signal[0];
+        Ranging_converted_data->targets[i] = Data_ToF->ZoneResult[i].NumberOfTargets;
+        Ranging_converted_data->status[i] = Data_ToF->ZoneResult[i].Status[0];
     }
 }
+
+//void validate_data(HANDPOSTURE_converted_data *Ranging_converted_data, HANDPOSTURE_filtered_data *Filtered_ToF){
+//	float min = 4000.0;
+//	for (int i = 0; i < 64; i++){
+//		if (Ranging_converted_data->targets[i] > 0
+//				&& Ranging_converted_data->status[i] == 0
+//				&& Ranging_converted_data->ranging[i] < min){
+//			min = Ranging_converted_data->ranging[i];  //sprawdzilismy najmniejszy dystans zmierzony w danej klatce
+//
+//		}
+//	}
+//}
+
 
 int post_process(ai_i8* data[])
 {

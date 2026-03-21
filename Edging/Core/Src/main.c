@@ -51,7 +51,7 @@ volatile uint8_t rx_flag = 0; // flaga informująca o otrzymaniu znaku
 RANGING_SENSOR_Result_t ToF_Data; // struktura do przechowywania danych z czujnika TOF
 RANGING_SENSOR_ProfileConfig_t ToF_Profile; // struktura do konfiguracji profilu pracy czujnika TOF
 volatile uint8_t ToF_EventFlag = 0; // flaga informująca o gotowości nowej klatki danych z czujnika TOF
-
+HANDPOSTURE_converted_data Collected_data;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,10 +108,12 @@ int main(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
   // Odcięcie zasilania i reset
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET); // PWR_EN_C na LOW
+  HAL_Delay(100);
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET); // LPn_C na LOW
   HAL_Delay(100);
 
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET); // PWR_EN_C na HIGH
+  HAL_Delay(100);
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET); // LPn_C na HIGH
 
   int32_t status = VL53L8A1_RANGING_SENSOR_Init(0);
@@ -120,10 +122,10 @@ int main(void)
         printf("Czujnik TOF zainicjowany z sukcesem!\r\n");
 
         ToF_Profile.RangingProfile = RS_PROFILE_8x8_CONTINUOUS;
-        ToF_Profile.TimingBudget = 30; // ms
-        ToF_Profile.Frequency = 15;
+        ToF_Profile.TimingBudget = 50; // ms
+        ToF_Profile.Frequency = 3;
         ToF_Profile.EnableSignal = 1;
-        ToF_Profile.EnableAmbient = 0;
+        ToF_Profile.EnableAmbient = 1;
 
         VL53L8A1_RANGING_SENSOR_ConfigProfile(0, &ToF_Profile);
 
@@ -158,20 +160,21 @@ int main(void)
 		  // Odczyt danych z czujnika TOF
 		  int32_t tof_status = VL53L8A1_RANGING_SENSOR_GetDistance(0, &ToF_Data);
 		  printf("Status odczytu TOF: %ld\r\n", tof_status);
-
+		  acquire_data(&Collected_data, &ToF_Data);
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
 			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
 
-			  for (int row = 0; row < 8; row++){
-				  for (int col = 0; col < 8; col++){
-					  int idx = row * 8 + col;
-					  long distance = ToF_Data.ZoneResult[idx].Distance[0];
-					  float signal = ToF_Data.ZoneResult[idx].Signal[0];
-					  printf("%4ld | %f ", distance, signal);
-				  }
-				  printf("\r\n");
-			  }
+//			  for (int row = 0; row < 8; row++){
+//				  for (int col = 0; col < 8; col++){
+//					  int idx = row * 8 + col;
+//					  long distance = ToF_Data.ZoneResult[idx].Distance[0];
+//					  float signal = ToF_Data.ZoneResult[idx].Signal[0];
+//					  printf("%4ld | %f ", distance, signal);
+//				  }
+//				  printf("\r\n");
+//			  }
+
 			  printf("-------------------------\r\n");
 		  }
 

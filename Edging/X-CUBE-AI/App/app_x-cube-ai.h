@@ -24,6 +24,7 @@ extern "C" {
   */
 /* Includes ------------------------------------------------------------------*/
 #include "ai_platform.h"
+#include "53l8a1_ranging_sensor.h"
 
 void MX_X_CUBE_AI_Init(void);
 void MX_X_CUBE_AI_Process(void);
@@ -31,8 +32,11 @@ void MX_X_CUBE_AI_Process(void);
 typedef struct{
 	float ranging[64];
 	float peak[64];
+	uint8_t targets[64];
+	uint32_t status[64];
 } HANDPOSTURE_converted_data;
 
+void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_Result_t *Data_ToF);
 /* USER CODE END includes */
 #ifdef __cplusplus
 }
