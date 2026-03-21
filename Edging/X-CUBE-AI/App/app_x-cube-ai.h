@@ -38,14 +38,10 @@ typedef struct{
 	float min_value;
 } HANDPOSTURE_converted_data;
 
-typedef struct{
-	float normalized_data[128];
-} HANDPOSTURE_AI_input;
-
 void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_Result_t *Data_ToF);
 void validate_frame(HANDPOSTURE_converted_data *Ranging_converted_data);
 void clean_frame(HANDPOSTURE_converted_data *Ranging_converted_data);
-void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, HANDPOSTURE_AI_input *AI_Data);
+void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, float *normalized_data_ai);
 /* USER CODE END includes */
 #ifdef __cplusplus
 }

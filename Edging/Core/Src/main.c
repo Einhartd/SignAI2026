@@ -52,6 +52,7 @@ RANGING_SENSOR_Result_t ToF_Data; // struktura do przechowywania danych z czujni
 RANGING_SENSOR_ProfileConfig_t ToF_Profile; // struktura do konfiguracji profilu pracy czujnika TOF
 volatile uint8_t ToF_EventFlag = 0; // flaga informująca o gotowości nowej klatki danych z czujnika TOF
 HANDPOSTURE_converted_data Collected_data;
+float ai_data_input[128];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -163,6 +164,7 @@ int main(void)
 		  acquire_data(&Collected_data, &ToF_Data);
 		  validate_frame(&Collected_data);
 		  clean_frame(&Collected_data);
+		  normalize_data(&Collected_data, &ai_data_input[0]);
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
 			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
