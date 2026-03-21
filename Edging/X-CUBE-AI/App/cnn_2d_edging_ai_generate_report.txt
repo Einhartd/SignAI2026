@@ -1,6 +1,6 @@
 ST Edge AI Core v2.2.0-20266 2adc00962
-Created date          : 2026-03-19 20:38:54
-Parameters            : generate --target stm32f4 --name cnn_2d_edging_ai -m D:/Dev/STM Zoo/stm32ai-modelzoo/hand_posture/st_cnn2d_handposture/ST_pretrainedmodel_custom_dataset/ST_VL53L8CX_handposture_dataset/st_cnn2d_handposture_8classes/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/E14/AppData/Local/Temp/mxAI_workspace1783154954180016126466767190725200 --output C:/Users/E14/.stm32cubemx/cnn_2d_edging_ai_output
+Created date          : 2026-03-22 00:21:10
+Parameters            : generate --target stm32f4 --name cnn_2d_edging_ai -m D:/Dev/STM Zoo/stm32ai-modelzoo/hand_posture/st_cnn2d_handposture/ST_pretrainedmodel_custom_dataset/ST_VL53L8CX_handposture_dataset/st_cnn2d_handposture_8classes/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/E14/AppData/Local/Temp/mxAI_workspace501550464175008750343604592643524 --output C:/Users/E14/.stm32cubemx/cnn_2d_edging_ai_output
 
 Exec/report summary (generate)
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ compression        :   none
 options            :   allocate-inputs, allocate-outputs                                                                                                                                                                       
 optimization       :   balanced                                                                                                                                                                                                
 target/series      :   stm32f4                                                                                                                                                                                                 
-workspace dir      :   C:\Users\E14\AppData\Local\Temp\mxAI_workspace1783154954180016126466767190725200                                                                                                                        
+workspace dir      :   C:\Users\E14\AppData\Local\Temp\mxAI_workspace501550464175008750343604592643524                                                                                                                         
 output dir         :   C:\Users\E14\.stm32cubemx\cnn_2d_edging_ai_output                                                                                                                                                       
 model_fmt          :   float                                                                                                                                                                                                   
 model_name         :   st_cnn2d_handposture_8classes                                                                                                                                                                           
