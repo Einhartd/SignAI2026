@@ -24,11 +24,11 @@ extern "C" {
   */
 /* Includes ------------------------------------------------------------------*/
 #include "ai_platform.h"
-#include "53l8a1_ranging_sensor.h"
 
 void MX_X_CUBE_AI_Init(void);
 void MX_X_CUBE_AI_Process(void);
 /* USER CODE BEGIN includes */
+#include "53l8a1_ranging_sensor.h"
 typedef struct{
 	float ranging[64];
 	float peak[64];
@@ -38,10 +38,19 @@ typedef struct{
 	float min_value;
 } HANDPOSTURE_converted_data;
 
+typedef struct{
+	uint8_t label_counter;
+	uint8_t handposture_label;
+	uint8_t previous_label;
+} OUTPUT_labels;
+
 void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SENSOR_Result_t *Data_ToF);
 void validate_frame(HANDPOSTURE_converted_data *Ranging_converted_data);
 void clean_frame(HANDPOSTURE_converted_data *Ranging_converted_data);
 void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, float *normalized_data_ai);
+static int argmax(const float *values, uint32_t len, float threshold);
+void output_selection(OUTPUT_labels *plabels, float *ai_ouput);
+static void label_filter(int current_label, OUTPUT_labels *plabels);
 /* USER CODE END includes */
 #ifdef __cplusplus
 }

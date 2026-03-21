@@ -56,7 +56,9 @@ float ai_data_input[128];
 const char* classes_table[8] = {
    "None", "FlatHand", "Like", "Love", "Dislike", "BreakTime", "CrossHands", "Fist"
 };
-
+float ai_data_output[8];
+char final_output;
+OUTPUT_labels Labels;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -128,7 +130,7 @@ int main(void)
 
         ToF_Profile.RangingProfile = RS_PROFILE_8x8_CONTINUOUS;
         ToF_Profile.TimingBudget = 50; // ms
-        ToF_Profile.Frequency = 3;
+        ToF_Profile.Frequency = 10;
         ToF_Profile.EnableSignal = 1;
         ToF_Profile.EnableAmbient = 1;
 
@@ -167,19 +169,23 @@ int main(void)
 		  printf("Status odczytu TOF: %ld\r\n", tof_status);
 		  acquire_data(&Collected_data, &ToF_Data);
 		  validate_frame(&Collected_data);
-		  clean_frame(&Collected_data);
-		  normalize_data(&Collected_data, &ai_data_input[0]);
-		  MX_X_CUBE_AI_Process();
+		  if (Collected_data.is_valid_frame == 1){
+			  clean_frame(&Collected_data);
+			  normalize_data(&Collected_data, &ai_data_input[0]);
+			  MX_X_CUBE_AI_Process();
+			  output_selection(&Labels, &ai_data_output[0]);
+		  }else{
+			  memcpy(ai_data_output, (float[]){1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 8 * sizeof(float));
+			  final_output = '0';
+		  }
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
-			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
 
 //			  for (int i = 0; i < 128; i++){
 //				  printf("%f", (float*)ai_input[0].data);
 //				  printf("\r\n");
 //			  }
 
-			  printf("-------------------------\r\n");
 		  }
 
 	  }
@@ -188,7 +194,7 @@ int main(void)
 
     /* USER CODE END WHILE */
 
-  MX_X_CUBE_AI_Process();
+//  MX_X_CUBE_AI_Process();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
