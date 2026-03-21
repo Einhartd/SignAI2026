@@ -22,7 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include "53l8a1_ranging_sensor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +45,17 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t rx_byte;
+volatile uint8_t rx_flag = 0; // flaga informująca o otrzymaniu znaku
+
+RANGING_SENSOR_Result_t ToF_Data; // struktura do przechowywania danych z czujnika TOF
+RANGING_SENSOR_ProfileConfig_t ToF_Profile; // struktura do konfiguracji profilu pracy czujnika TOF
+volatile uint8_t ToF_EventFlag = 0; // flaga informująca o gotowości nowej klatki danych z czujnika TOF
+HANDPOSTURE_converted_data Collected_data;
+float ai_data_input[128];
+const char* classes_table[8] = {
+   "None", "FlatHand", "Like", "Love", "Dislike", "BreakTime", "CrossHands", "Fist"
+};
 
 /* USER CODE END PV */
 
@@ -92,13 +104,88 @@ int main(void)
   MX_USART2_UART_Init();
   MX_X_CUBE_AI_Init();
   /* USER CODE BEGIN 2 */
+  // uruchomienie przerwania dla terminala
+  HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+
+
+  // Inicjalizacja czujnika TOF
+  // Wymuszenie komunikacji I2C
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+  // Odcięcie zasilania i reset
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET); // PWR_EN_C na LOW
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET); // LPn_C na LOW
+  HAL_Delay(100);
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET); // PWR_EN_C na HIGH
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET); // LPn_C na HIGH
+
+  int32_t status = VL53L8A1_RANGING_SENSOR_Init(0);
+
+  if (status == 0) {
+        printf("Czujnik TOF zainicjowany z sukcesem!\r\n");
+
+        ToF_Profile.RangingProfile = RS_PROFILE_8x8_CONTINUOUS;
+        ToF_Profile.TimingBudget = 50; // ms
+        ToF_Profile.Frequency = 3;
+        ToF_Profile.EnableSignal = 1;
+        ToF_Profile.EnableAmbient = 1;
+
+        VL53L8A1_RANGING_SENSOR_ConfigProfile(0, &ToF_Profile);
+
+        int32_t start_status = VL53L8A1_RANGING_SENSOR_Start(0, RS_MODE_BLOCKING_CONTINUOUS);
+
+        if (start_status == 0) {
+			printf("Czujnik TOF rozpoczal pomiary w trybie ciaglym!\r\n");
+		} else {
+			printf("Blad uruchamiania pomiarow TOF! Kod bledu: %ld\r\n", start_status);
+		}
+
+    } else {
+        printf("BLAD inicjalizacji TOF! Kod bledu I2C: %ld\r\n", status);
+    }
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
+	  if (rx_flag==1){
+		  rx_flag=0; // reset flagi
+		  printf("Otrzymano znak: %c\r\n", rx_byte);
+	  }
+
+
+	  if (ToF_EventFlag == 1) {
+		  ToF_EventFlag = 0; // reset flagi
+
+		  // Odczyt danych z czujnika TOF
+		  int32_t tof_status = VL53L8A1_RANGING_SENSOR_GetDistance(0, &ToF_Data);
+		  printf("Status odczytu TOF: %ld\r\n", tof_status);
+		  acquire_data(&Collected_data, &ToF_Data);
+		  validate_frame(&Collected_data);
+		  clean_frame(&Collected_data);
+		  normalize_data(&Collected_data, &ai_data_input[0]);
+		  MX_X_CUBE_AI_Process();
+		  if (tof_status == 0){
+			  printf("\033[2J\033[H");
+			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
+
+//			  for (int i = 0; i < 128; i++){
+//				  printf("%f", (float*)ai_input[0].data);
+//				  printf("\r\n");
+//			  }
+
+			  printf("-------------------------\r\n");
+		  }
+
+	  }
+
+	  __WFI();	// przejście w tryb oszczędzania energii do momentu wystąpienia przerwania
+
     /* USER CODE END WHILE */
 
   MX_X_CUBE_AI_Process();
@@ -205,20 +292,44 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FLEX_SPI_I2C_N_GPIO_Port, FLEX_SPI_I2C_N_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|PWR_EN_C_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LPn_C_GPIO_Port, LPn_C_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : FLEX_SPI_I2C_N_Pin */
+  GPIO_InitStruct.Pin = FLEX_SPI_I2C_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(FLEX_SPI_I2C_N_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : INT_C_Pin */
+  GPIO_InitStruct.Pin = INT_C_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(INT_C_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LD2_Pin PWR_EN_C_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|PWR_EN_C_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LPn_C_Pin */
+  GPIO_InitStruct.Pin = LPn_C_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LPn_C_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -226,6 +337,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+int _write(int file, char *ptr, int len)
+{
+    // Wysyła od razu cały łańcuch znaków
+    HAL_UART_Transmit(&huart2, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+    return len;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == USART2) {
+		rx_flag = 1;
+		// ponownie uruchomienie przerwania dla kolejnego znaku
+		HAL_UART_Receive_IT(&huart2, &rx_byte, 1);
+	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == INT_C_Pin) {
+		ToF_EventFlag = 1;
+	}
+}
+
 
 /* USER CODE END 4 */
 
