@@ -258,17 +258,42 @@ void acquire_data(HANDPOSTURE_converted_data *Ranging_converted_data, RANGING_SE
     }
 }
 
-//void validate_data(HANDPOSTURE_converted_data *Ranging_converted_data, HANDPOSTURE_filtered_data *Filtered_ToF){
-//	float min = 4000.0;
-//	for (int i = 0; i < 64; i++){
-//		if (Ranging_converted_data->targets[i] > 0
-//				&& Ranging_converted_data->status[i] == 0
-//				&& Ranging_converted_data->ranging[i] < min){
-//			min = Ranging_converted_data->ranging[i];  //sprawdzilismy najmniejszy dystans zmierzony w danej klatce
-//
-//		}
-//	}
-//}
+void validate_frame(HANDPOSTURE_converted_data *Ranging_converted_data){
+	float min = 4000.0;
+	for (int i = 0; i < 64; i++){
+		if (Ranging_converted_data->targets[i] > 0
+				&& Ranging_converted_data->status[i] == 0
+				&& Ranging_converted_data->ranging[i] < min){
+			min = Ranging_converted_data->ranging[i];  //sprawdzilismy najmniejszy dystans zmierzony w danej klatce
+			Ranging_converted_data->min_value = min;
+		}
+		if (min < 400.0 && min > 100.0){
+			Ranging_converted_data->is_valid_frame = 1;
+		}
+	}
+}
+
+void clean_frame(HANDPOSTURE_converted_data *Ranging_converted_data){
+	bool valid;
+	float background_removal = 120.0;
+	float default_ranging_value = 4000.0;
+	float default_signal_value = 0.0;
+
+	for (int i = 0; i < 64; i++){
+		valid = (Ranging_converted_data->targets[i] > 0)
+				&& (Ranging_converted_data->status[i] == 0)
+				&& (Ranging_converted_data->ranging[i] < Ranging_converted_data->min_value + background_removal);
+		if (!valid){
+			Ranging_converted_data->ranging[i] = default_ranging_value;
+			Ranging_converted_data->peak[i] = default_signal_value;
+		}
+	}
+
+}
+
+void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, HANDPOSTURE_AI_input *AI_Data){
+
+}
 
 
 int post_process(ai_i8* data[])

@@ -161,6 +161,8 @@ int main(void)
 		  int32_t tof_status = VL53L8A1_RANGING_SENSOR_GetDistance(0, &ToF_Data);
 		  printf("Status odczytu TOF: %ld\r\n", tof_status);
 		  acquire_data(&Collected_data, &ToF_Data);
+		  validate_frame(&Collected_data);
+		  clean_frame(&Collected_data);
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
 			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
