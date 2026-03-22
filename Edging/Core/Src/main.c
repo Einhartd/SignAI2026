@@ -177,10 +177,16 @@ int main(void)
 			  normalize_data(&Collected_data, &ai_data_input[0]);
 			  MX_X_CUBE_AI_Process();
 			  output_selection(&Labels, &ai_data_output[0]);
+			  final_output = (char)('0' + Labels.handposture_label);
+
+
 		  }else{
 			  memcpy(ai_data_output, (float[]){1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 8 * sizeof(float));
 			  final_output = '0';
 		  }
+		  // wyslanie do ESP32
+		  HAL_UART_Transmit(&huart6, (uint8_t*)&final_output, 1, HAL_MAX_DELAY);
+
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
 
