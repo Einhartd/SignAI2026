@@ -269,9 +269,15 @@ void validate_frame(HANDPOSTURE_converted_data *Ranging_converted_data){
 			min = Ranging_converted_data->ranging[i];  //sprawdzilismy najmniejszy dystans zmierzony w danej klatce
 			Ranging_converted_data->min_value = min;
 		}
-		if (min < 400.0 && min > 100.0){
-			Ranging_converted_data->is_valid_frame = 1;
-		}
+	}
+
+	Ranging_converted_data->min_value = min;
+
+	if (min < 400.0 && min > 100.0){
+		Ranging_converted_data->is_valid_frame = 1;
+	}
+	else {
+		Ranging_converted_data->is_valid_frame = 0;
 	}
 }
 
