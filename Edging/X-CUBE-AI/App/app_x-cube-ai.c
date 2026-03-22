@@ -305,8 +305,8 @@ void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, float *n
 	float normalization_signal_center = 281.0;
 	float normalization_signal_iqr = 452.0;
 	for (int i = 0; i < 64; i++){
-		normalized_data_ai[2*i] = (Ranging_converted_data->ranging[i] - normalization_ranging_center / normalization_ranging_iqr);
-		normalized_data_ai[2*i+1] = (Ranging_converted_data->peak[i] - normalization_signal_center / normalization_signal_iqr);
+		normalized_data_ai[2*i] = ((Ranging_converted_data->ranging[i] - normalization_ranging_center) / normalization_ranging_iqr);
+		normalized_data_ai[2*i+1] = ((Ranging_converted_data->peak[i] - normalization_signal_center) / normalization_signal_iqr);
 	}
 }
 
