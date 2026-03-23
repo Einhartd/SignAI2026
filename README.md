@@ -1,7 +1,7 @@
 # SpatialKey
 **SignAI 2026 Hackathon Project**
 
-![](readme_materials\spacialkeys-gif.gif)
+![gif](./readme_materials/spacialkeys-gif.gif)
 
 ## Overview
 
