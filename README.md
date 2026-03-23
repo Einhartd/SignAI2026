@@ -1,6 +1,8 @@
 # SpatialKey
 **SignAI 2026 Hackathon Project**
 
+![](readme_materials\spacialkeys-gif.gif)
+
 ## Overview
 
 SpatialKey is a hardware-software solution developed within a 24-hour timeframe during the SignAI 2026 hackathon. The system leverages a Time-of-Flight (ToF) sensor and Edge AI processing to recognize static hand gestures and transmit them via Bluetooth Low Energy (BLE) to a personal computer, where they are translated into dynamic system commands.
@@ -35,6 +37,14 @@ The application is configured to recognize a specific set of hand postures, mapp
 * `bleak` - Asynchronous Bluetooth Low Energy client operations.
 * `pynput` - Cross-platform control of virtual input devices (keyboard and mouse).
 * `Tkinter` - Application GUI framework.
+
+<table>
+  <tr>
+    <td><img src="readme_materials\Obraz1.png" alt="Obraz 1"></td>
+    <td><img src="readme_materials\Obraz2.png" alt="Obraz 2"></td>
+  </tr>
+</table>
+GUI of simple application for connecting with ESP32 via bluetooth with simple configuration options.
 
 ## Team Members
 - [Oliwier Kniażewski](https://github.com/Einhartd)
