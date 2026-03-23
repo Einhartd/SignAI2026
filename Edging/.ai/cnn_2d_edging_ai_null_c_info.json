@@ -411,44 +411,44 @@
   ],
   "environment": {
     "generated_model": {
-      "generated_time": "2026-03-19T20:38:52+0100",
+      "generated_time": "2026-03-22T00:21:06+0100",
       "model_files": [
         {
           "name": "cnn_2d_edging_ai_data_params.h",
-          "signature": "0xff15e82863508bd24dc2b2050ca9d118"
+          "signature": "0x2ee76da78bec0f9069077ddb31437730"
         },
         {
           "name": "cnn_2d_edging_ai_data_params.c",
-          "signature": "0x559144d1aca064c2cc8081cf4491e822"
+          "signature": "0x2f87fc6882a6933535c494bfee41971e"
         },
         {
           "name": "cnn_2d_edging_ai_data.h",
-          "signature": "0x2dbeb6c1d0d530ae0403bb602754ffe7"
+          "signature": "0x68f59ba12e77dcde376bbe2108069fc0"
         },
         {
           "name": "cnn_2d_edging_ai_data.c",
-          "signature": "0x094df21c7403eeb4205c76defb882ce6"
+          "signature": "0x4a2c023c46e364987d96fa2a36a099b8"
         },
         {
           "name": "cnn_2d_edging_ai_config.h",
-          "signature": "0x1efffb831b801e31caf1191628b48084"
+          "signature": "0x5fea4a544cc3aa9e997e2be29d1e5e7b"
         },
         {
           "name": "cnn_2d_edging_ai.h",
-          "signature": "0xde4a039beb63314bdef9c851f3e33c37"
+          "signature": "0x6a38e1fafc61950f50b2cdcaf8dd45c7"
         },
         {
           "name": "cnn_2d_edging_ai.c",
-          "signature": "0x6466e02764e6ef4be8578604e2fe8d74"
+          "signature": "0x43c1e28c00afed06920a40726c6fb2b6"
         }
       ],
       "name": "cnn_2d_edging_ai"
     },
-    "network_signature": "0x59f0faded4ab3889",
+    "network_signature": "0x365df52be4a3b344",
     "test_name": "",
     "tools": [
       {
-        "arguments": "generate --target stm32f4 --name cnn_2d_edging_ai -m D:/Dev/STM Zoo/stm32ai-modelzoo/hand_posture/st_cnn2d_handposture/ST_pretrainedmodel_custom_dataset/ST_VL53L8CX_handposture_dataset/st_cnn2d_handposture_8classes/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/E14/AppData/Local/Temp/mxAI_workspace1783154954180016126466767190725200 --output C:/Users/E14/.stm32cubemx/cnn_2d_edging_ai_output",
+        "arguments": "generate --target stm32f4 --name cnn_2d_edging_ai -m D:/Dev/STM Zoo/stm32ai-modelzoo/hand_posture/st_cnn2d_handposture/ST_pretrainedmodel_custom_dataset/ST_VL53L8CX_handposture_dataset/st_cnn2d_handposture_8classes/st_cnn2d_handposture_8classes.keras --compression none --verbosity 1 --workspace C:/Users/E14/AppData/Local/Temp/mxAI_workspace501550464175008750343604592643524 --output C:/Users/E14/.stm32cubemx/cnn_2d_edging_ai_output",
         "environment": [
           "STATS_TYPE=X-CUBE-AI"
         ],

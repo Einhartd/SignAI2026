@@ -67,6 +67,7 @@
 //RANGING_SENSOR_ZoneResult_t Data_ToF;
  uint32_t five_counter = 0;
  extern float ai_data_input[128];
+ extern float ai_data_output[8];
 /* USER CODE END includes */
 
 /* IO buffers ----------------------------------------------------------------*/
@@ -268,9 +269,15 @@ void validate_frame(HANDPOSTURE_converted_data *Ranging_converted_data){
 			min = Ranging_converted_data->ranging[i];  //sprawdzilismy najmniejszy dystans zmierzony w danej klatce
 			Ranging_converted_data->min_value = min;
 		}
-		if (min < 400.0 && min > 100.0){
-			Ranging_converted_data->is_valid_frame = 1;
-		}
+	}
+
+	Ranging_converted_data->min_value = min;
+
+	if (min < 400.0 && min > 100.0){
+		Ranging_converted_data->is_valid_frame = 1;
+	}
+	else {
+		Ranging_converted_data->is_valid_frame = 0;
 	}
 }
 
@@ -298,11 +305,54 @@ void normalize_data(HANDPOSTURE_converted_data *Ranging_converted_data, float *n
 	float normalization_signal_center = 281.0;
 	float normalization_signal_iqr = 452.0;
 	for (int i = 0; i < 64; i++){
-		normalized_data_ai[2*i] = (Ranging_converted_data->ranging[i] - normalization_ranging_center / normalization_ranging_iqr);
-		normalized_data_ai[2*i+1] = (Ranging_converted_data->peak[i] - normalization_signal_center / normalization_signal_iqr);
+		normalized_data_ai[2*i] = ((Ranging_converted_data->ranging[i] - normalization_ranging_center) / normalization_ranging_iqr);
+		normalized_data_ai[2*i+1] = ((Ranging_converted_data->peak[i] - normalization_signal_center) / normalization_signal_iqr);
 	}
 }
 
+static int argmax(const float *values, uint32_t len, float threshold)
+{
+  float max_value = values[0];
+  uint32_t max_index = 0;
+  for (uint32_t i = 1; i < len; i++)
+  {
+    if (values[i] > max_value && values[i] > threshold)
+    {
+      max_value = values[i];
+      max_index = i;
+    }
+  }
+  return(max_index);
+}
+
+static void label_filter(int current_label, OUTPUT_labels *plabels)
+{
+  if (current_label == plabels->previous_label)
+  {
+    if (plabels->label_counter < 3)
+    	plabels->label_counter++;
+    else if (plabels->label_counter == 3)
+    	plabels->handposture_label = current_label;
+    else
+    	plabels->label_counter = 0;
+  }
+  else
+  {
+	  plabels->label_counter = 0;
+#if KEEP_LAST_VALID == 0
+	  plabels->handposture_label = 0;
+#endif
+  }
+
+  plabels->previous_label = current_label;
+}
+
+void output_selection(OUTPUT_labels *plabels, float *ai_ouput){
+	int current_label = 0;
+	float threshold = 0.9;
+	current_label = argmax(ai_ouput, 8, threshold);
+	label_filter(current_label, plabels);
+}
 
 int post_process(ai_i8* data[])
 {
@@ -315,6 +365,7 @@ int post_process(ai_i8* data[])
   */
   return 0;
 }
+
 /* USER CODE END 2 */
 
 /* Entry points --------------------------------------------------------------*/
@@ -337,10 +388,9 @@ void MX_X_CUBE_AI_Process(void)
 	ai_input->meta_info = NULL;
 	ai_input->flags = 0;
 
-//	for (int i = 0; i < 128; i++){
-//		printf("%f", ((float*)ai_input->data)[i]);
-//	}
 	ai_run();
+
+	memcpy(ai_data_output, (float*)ai_output->data, 8 * sizeof(float));
 
     /* USER CODE END 6 */
 }

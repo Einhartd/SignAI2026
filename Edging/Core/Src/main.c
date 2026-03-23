@@ -43,6 +43,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
 uint8_t rx_byte;
@@ -56,13 +57,16 @@ float ai_data_input[128];
 const char* classes_table[8] = {
    "None", "FlatHand", "Like", "Love", "Dislike", "BreakTime", "CrossHands", "Fist"
 };
-
+float ai_data_output[8];
+uint8_t final_output;
+OUTPUT_labels Labels;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -102,6 +106,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_USART6_UART_Init();
   MX_X_CUBE_AI_Init();
   /* USER CODE BEGIN 2 */
   // uruchomienie przerwania dla terminala
@@ -128,7 +133,7 @@ int main(void)
 
         ToF_Profile.RangingProfile = RS_PROFILE_8x8_CONTINUOUS;
         ToF_Profile.TimingBudget = 50; // ms
-        ToF_Profile.Frequency = 3;
+        ToF_Profile.Frequency = 10;
         ToF_Profile.EnableSignal = 1;
         ToF_Profile.EnableAmbient = 1;
 
@@ -167,19 +172,31 @@ int main(void)
 		  printf("Status odczytu TOF: %ld\r\n", tof_status);
 		  acquire_data(&Collected_data, &ToF_Data);
 		  validate_frame(&Collected_data);
-		  clean_frame(&Collected_data);
-		  normalize_data(&Collected_data, &ai_data_input[0]);
-		  MX_X_CUBE_AI_Process();
+		  if (Collected_data.is_valid_frame == 1){
+			  clean_frame(&Collected_data);
+			  normalize_data(&Collected_data, &ai_data_input[0]);
+			  MX_X_CUBE_AI_Process();
+			  output_selection(&Labels, &ai_data_output[0]);
+<<<<<<< HEAD
+			  final_output = (char)('0' + Labels.handposture_label);
+
+
+=======
+			  final_output =Labels.handposture_label;
+>>>>>>> origin/feature/edging
+		  }else{
+			  memcpy(ai_data_output, (float[]){1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 8 * sizeof(float));
+			  final_output = 0;
+		  }
+		  if(Labels.label_counter >= 3){
+			  HAL_UART_Transmit(&huart6, (uint8_t*)&final_output, 1, HAL_MAX_DELAY);
+		  }
+		  // wyslanie do ESP32
+		  HAL_UART_Transmit(&huart6, (uint8_t*)&final_output, 1, HAL_MAX_DELAY);
+
 		  if (tof_status == 0){
 			  printf("\033[2J\033[H");
-			  printf("--- MACIERZ ODLEGLOSCI (8x8) ---\r\n");
 
-//			  for (int i = 0; i < 128; i++){
-//				  printf("%f", (float*)ai_input[0].data);
-//				  printf("\r\n");
-//			  }
-
-			  printf("-------------------------\r\n");
 		  }
 
 	  }
@@ -270,6 +287,39 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 115200;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
 
 }
 
